@@ -1,0 +1,22 @@
+# Используем стабильную версию Node
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Копируем файлы зависимостей
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm install
+
+# Копируем весь исходный код
+COPY . .
+
+# Собираем проект (NestJS компилирует TS в JS)
+RUN npm run build
+
+# Открываем порт бэкенда
+EXPOSE 3000
+
+# Запуск приложения
+CMD ["npm", "run", "start:dev"]

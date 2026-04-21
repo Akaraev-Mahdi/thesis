@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16.0
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    # Бэкенд (Nest.js)
+  api:
+    build: .
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=${POSTGRES_HOST}
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASS=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+    depends_on:
+      - db
+
+  # Фронтенд (React + Vite)
+  frontend:
+    build: ../frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
